@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Arena: 2D Fighting Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0c0c14;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .character-select {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .title {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+            font-family: 'Impact', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            width: 80%;
+            max-width: 1000px;
+            margin-bottom: 2rem;
+        }
+        
+        .character-option {
+            background-color: #1a1a2e;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .character-option:hover {
+            transform: scale(1.05);
+            border-color: #ff0000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+        }
+        
+        .character-portrait {
+            width: 100%;
+            height: 100px;
+            background-color: #333;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #fff;
+        }
+        
+        .character-name {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .character-type {
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+        
+        .game-arena {
+            width: 100%;
+            height: 100%;
+            background-image: url('/api/placeholder/800/400');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .health-bars {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 50px;
+            box-sizing: border-box;
+        }
+        
+        .health-container {
+            width: 40%;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 2px solid #333;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        
+        .health-bar {
+            height: 20px;
+            width: 100%;
+            background-color: #333;
+            position: relative;
+        }
+        
+        .health-fill {
+            height: 100%;
+            width: 100%;
+            background-color: #ff3333;
+            transition: width 0.3s;
+        }
+        
+        .player-name {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .timer-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 2px solid #333;
+            border-radius: 5px;
+            padding: 5px 15px;
+        }
+        
+        .timer {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .round-info {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .round-counter {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .player-sprite {
+            position: absolute;
+            bottom: 150px;
+            width: 100px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            transform-origin: center;
+        }
+        
+        .player {
+            left: 200px;
+        }
+        
+        .ai {
+            right: 200px;
+            transform: scaleX(-1);
+        }
+        
+        .action-text {
+            position: absolute;
+            font-size: 2rem;
+            color: #fff;
+            text-shadow: 0 0 10px #000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 300px;
+        }
+        
+        .controls-hint h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .controls-hint p {
+            margin: 5px 0;
+        }
+        
+        .match-result {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .result-text {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px #ff0000;
+        }
+        
+        .play-again {
+            background-color: #ff3333;
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .play-again:hover {
+            background-color: #cc0000;
+        }
+        
+        .character-details {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 300px;
+        }
+        
+        .character-details h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .special-move {
+            margin-top: 10px;
+            padding: 5px;
+            background-color: rgba(255, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+        
+        .attack-animation {
+            animation: attack 0.5s ease-in-out;
+        }
+        
+        .hit-animation {
+            animation: hit 0.3s ease-in-out;
+        }
+        
+        .special-animation {
+            animation: special 1s ease-in-out;
+        }
+        
+        @keyframes attack {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(50px); }
+            100% { transform: translateX(0); }
+        }
+        
+        @keyframes hit {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes special {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.2); filter: brightness(1.5); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        
+        .arena-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .round-announcement {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            color: #fff;
+            text-shadow: 0 0 20px #ff0000;
+            opacity: 0;
+            z-index: 50;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="character-select">
+            <h1 class="title">Battle Arena</h1>
+            <div class="character-grid" id="characterGrid"></div>
+        </div>
+        
+        <div class="game-arena">
+            <div class="health-bars">
+                <div class="health-container">
+                    <div class="player-name" id="player-name">Player</div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="player-health"></div>
+                    </div>
+                </div>
+                <div class="health-container">
+                    <div class="player-name" id="ai-name">AI</div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="ai-health"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="timer-container">
+                <div class="timer" id="timer">60</div>
+            </div>
+            
+            <div class="round-info">
+                <div class="round-counter" id="round-counter">Round 1</div>
+                <div class="round-wins" id="round-wins">Player 0 - 0 AI</div>
+            </div>
+            
+            <div class="player-sprite player" id="player-sprite">🥷</div>
+            <div class="player-sprite ai" id="ai-sprite">👹</div>
+            
+            <div class="action-text" id="action-text"></div>
+            
+            <div class="controls-hint">
+                <h3>Controls</h3>
+                <p>A/D - Move left/right</p>
+                <p>W - Jump</p>
+                <p>J - Light Attack</p>
+                <p>K - Heavy Attack</p>
+                <p>L - Special Move</p>
+                <p>S - Block</p>
+            </div>
+            
+            <div class="character-details" id="character-details">
+                <h3 id="player-character-name">Character</h3>
+                <p id="player-character-type">Type</p>
+                <p id="player-character-strength">Strength: </p>
+                <p id="player-character-weakness">Weakness: </p>
+                <div class="special-move">
+                    <p id="player-special-move">Special: </p>
+                    <p id="player-special-key">Press L to use</p>
+                </div>
+            </div>
+            
+            <div class="match-result" id="match-result">
+                <div class="result-text" id="result-text">You Win!</div>
+                <button class="play-again" id="play-again">Play Again</button>
+            </div>
+            
+            <div class="round-announcement" id="round-announcement">Round 1</div>
+        </div>
+    </div>
+
+    <script>
+        // Character Data
+        const characters = [
+            {
+                id: 1,
+                name: "Scorcher",
+                emoji: "🔥",
+                type: "Fire Elemental",
+                strength: "Fire attacks deal extra damage",
+                weakness: "Vulnerable to water attacks",
+                specialMove: "Inferno Blast",
+                attackPower: 15,
+                defensePower: 8,
+                specialPower: 25,
+                color: "#ff4500"
+            },
+            {
+                id: 2,
+                name: "Frost",
+                emoji: "❄️",
+                type: "Ice Warrior",
+                strength: "Can freeze opponents temporarily",
+                weakness: "Slow movement speed",
+                specialMove: "Blizzard Storm",
+                attackPower: 12,
+                defensePower: 15,
+                specialPower: 20,
+                color: "#00bfff"
+            },
+            {
+                id: 3,
+                name: "Thunder",
+                emoji: "⚡",
+                type: "Lightning Monk",
+                strength: "Fast attacks and movement",
+                weakness: "Low defense",
+                specialMove: "Lightning Strike",
+                attackPower: 10,
+                defensePower: 5,
+                specialPower: 30,
+                color: "#ffff00"
+            },
+            {
+                id: 4,
+                name: "Stone",
+                emoji: "🪨",
+                type: "Earth Golem",
+                strength: "High defense",
+                weakness: "Slow attack speed",
+                specialMove: "Earthquake",
+                attackPower: 8,
+                defensePower: 20,
+                specialPower: 18,
+                color: "#8b4513"
+            },
+            {
+                id: 5,
+                name: "Blade",
+                emoji: "🗡️",
+                type: "Sword Master",
+                strength: "High combo potential",
+                weakness: "Low health",
+                specialMove: "Thousand Cuts",
+                attackPower: 13,
+                defensePower: 7,
+                specialPower: 22,
+                color: "#c0c0c0"
+            },
+            {
+                id: 6,
+                name: "Shadow",
+                emoji: "👤",
+                type: "Ninja",
+                strength: "Can dodge attacks",
+                weakness: "Low attack power",
+                specialMove: "Smoke Bomb",
+                attackPower: 9,
+                defensePower: 10,
+                specialPower: 15,
+                color: "#4b0082"
+            },
+            {
+                id: 7,
+                name: "Beast",
+                emoji: "🐺",
+                type: "Werewolf",
+                strength: "High damage",
+                weakness: "Can't block effectively",
+                specialMove: "Feral Rage",
+                attackPower: 18,
+                defensePower: 5,
+                specialPower: 20,
+                color: "#654321"
+            },
+            {
+                id: 8,
+                name: "Mist",
+                emoji: "🌫️",
+                type: "Ghost",
+                strength: "Can phase through attacks",
+                weakness: "Special moves drain energy",
+                specialMove: "Soul Drain",
+                attackPower: 11,
+                defensePower: 12,
+                specialPower: 16,
+                color: "#dcdcdc"
+            },
+            {
+                id: 9,
+                name: "Dragon",
+                emoji: "🐉",
+                type: "Dragon Descendant",
+                strength: "Balanced stats",
+                weakness: "No specific strength",
+                specialMove: "Dragon Breath",
+                attackPower: 14,
+                defensePower: 14,
+                specialPower: 22,
+                color: "#008000"
+            },
+            {
+                id: 10,
+                name: "Venom",
+                emoji: "🐍",
+                type: "Poison Master",
+                strength: "Attacks deal damage over time",
+                weakness: "Low initial damage",
+                specialMove: "Toxic Cloud",
+                attackPower: 10,
+                defensePower: 10,
+                specialPower: 20,
+                color: "#800080"
+            },
+            {
+                id: 11,
+                name: "Titan",
+                emoji: "🏋️",
+                type: "Giant",
+                strength: "High health and damage",
+                weakness: "Large target, easy to hit",
+                specialMove: "Ground Pound",
+                attackPower: 16,
+                defensePower: 16,
+                specialPower: 18,
+                color: "#a9a9a9"
+            },
+            {
+                id: 12,
+                name: "Cipher",
+                emoji: "🧙",
+                type: "Mage",
+                strength: "Powerful special moves",
+                weakness: "Low physical attack",
+                specialMove: "Arcane Blast",
+                attackPower: 7,
+                defensePower: 9,
+                specialPower: 28,
+                color: "#4169e1"
+            },
+            {
+                id: 13,
+                name: "Pyro",
+                emoji: "🧨",
+                type: "Explosives Expert",
+                strength: "Area damage",
+                weakness: "Self-damage risk",
+                specialMove: "Mega Bomb",
+                attackPower: 15,
+                defensePower: 8,
+                specialPower: 25,
+                color: "#ff6347"
+            },
+            {
+                id: 14,
+                name: "Medusa",
+                emoji: "👑",
+                type: "Snake Queen",
+                strength: "Can stun opponents",
+                weakness: "Slow movement",
+                specialMove: "Stone Gaze",
+                attackPower: 12,
+                defensePower: 13,
+                specialPower: 22,
+                color: "#9acd32"
+            },
+            {
+                id: 15,
+                name: "Reaper",
+                emoji: "💀",
+                type: "Death Knight",
+                strength: "Steals health with attacks",
+                weakness: "Low defense",
+                specialMove: "Soul Harvest",
+                attackPower: 16,
+                defensePower: 6,
+                specialPower: 24,
+                color: "#696969"
+            },
+            {
+                id: 16,
+                name: "Bolt",
+                emoji: "🏃",
+                type: "Speedster",
+                strength: "Fastest character",
+                weakness: "Low health",
+                specialMove: "Time Warp",
+                attackPower: 11,
+                defensePower: 7,
+                specialPower: 18,
+                color: "#87ceeb"
+            },
+            {
+                id: 17,
+                name: "Golem",
+                emoji: "🤖",
+                type: "Robot",
+                strength: "High defense",
+                weakness: "Limited mobility",
+                specialMove: "Power Surge",
+                attackPower: 13,
+                defensePower: 18,
+                specialPower: 15,
+                color: "#708090"
+            },
+            {
+                id: 18,
+                name: "Nova",
+                emoji: "✨",
+                type: "Cosmic Entity",
+                strength: "Unpredictable attacks",
+                weakness: "Unstable power",
+                specialMove: "Supernova",
+                attackPower: 14,
+                defensePower: 10,
+                specialPower: 30,
+                color: "#ffd700"
+            },
+            {
+                id: 19,
+                name: "Knight",
+                emoji: "🛡️",
+                type: "Royal Guard",
+                strength: "Can parry attacks",
+                weakness: "Slow special moves",
+                specialMove: "Royal Judgement",
+                attackPower: 12,
+                defensePower: 17,
+                specialPower: 16,
+                color: "#b0c4de"
+            },
+            {
+                id: 20,
+                name: "Phantom",
+                emoji: "👻",
+                type: "Spirit",
+                strength: "Can become intangible",
+                weakness: "Limited attack range",
+                specialMove: "Possession",
+                attackPower: 10,
+                defensePower: 12,
+                specialPower: 25,
+                color: "#e6e6fa"
+            }
+        ];
+
+        // Arena backgrounds
+        const arenas = [
+            { name: "Temple", style: "linear-gradient(to bottom, #610606, #300303)" },
+            { name: "Forest", style: "linear-gradient(to bottom, #0a3200, #051a00)" },
+            { name: "Desert", style: "linear-gradient(to bottom, #a67c00, #593c00)" },
+            { name: "Volcano", style: "linear-gradient(to bottom, #a30000, #4a0000)" },
+            { name: "Palace", style: "linear-gradient(to bottom, #000a3d, #00051a)" }
+        ];
+
+        // Game state
+        let gameState = {
+            playerCharacter: null,
+            aiCharacter: null,
+            playerHealth: 100,
+            aiHealth: 100,
+            playerPosition: 200,
+            aiPosition: 600,
+            playerWins: 0,
+            aiWins: 0,
+            currentRound: 1,
+            timeLeft: 60,
+            gameActive: false,
+            timerInterval: null,
+            keysPressed: {},
+            playerBlocking: false,
+            aiBlocking: false,
+            gameOver: false,
+            currentArena: null
+        };
+
+        // DOM Elements
+        const characterGrid = document.getElementById('characterGrid');
+        const characterSelect = document.querySelector('.character-select');
+        const playerSprite = document.getElementById('player-sprite');
+        const aiSprite = document.getElementById('ai-sprite');
+        const playerHealthBar = document.getElementById('player-health');
+        const aiHealthBar = document.getElementById('ai-health');
+        const timerDisplay = document.getElementById('timer');
+        const roundCounter = document.getElementById('round-counter');
+        const roundWins = document.getElementById('round-wins');
+        const actionText = document.getElementById('action-text');
+        const matchResult = document.getElementById('match-result');
+        const resultText = document.getElementById('result-text');
+        const playAgainBtn = document.getElementById('play-again');
+        const roundAnnouncement = document.getElementById('round-announcement');
+        const playerNameDisplay = document.getElementById('player-name');
+        const aiNameDisplay = document.getElementById('ai-name');
+        const characterDetails = document.getElementById('character-details');
+        const playerCharacterName = document.getElementById('player-character-name');
+        const playerCharacterType = document.getElementById('player-character-type');
+        const playerCharacterStrength = document.getElementById('player-character-strength');
+        const playerCharacterWeakness = document.getElementById('player-character-weakness');
+        const playerSpecialMove = document.getElementById('player-special-move');
+        
+        // Initialize character selection grid
+        function initializeCharacterGrid() {
+            characterGrid.innerHTML = '';
+            characters.forEach(character => {
+                const characterOption = document.createElement('div');
+                characterOption.className = 'character-option';
+                characterOption.dataset.id = character.id;
+                
+                const portrait = document.createElement('div');
+                portrait.className = 'character-portrait';
+                portrait.style.backgroundColor = character.color;
+                portrait.textContent = character.emoji;
+                
+                const name = document.createElement('div');
+                name.className = 'character-name';
+                name.textContent = character.name;
+                
+                const type = document.createElement('div');
+                type.className = 'character-type';
+                type.textContent = character.type;
+                
+                characterOption.appendChild(portrait);
+                characterOption.appendChild(name);
+                characterOption.appendChild(type);
+                
+                characterOption.addEventListener('click', () => selectCharacter(character));
+                
+                characterGrid.appendChild(characterOption);
+            });
+        }
+        
+        // Select character
+        function selectCharacter(character) {
+            gameState.playerCharacter = character;
+            
+            // AI selects a random different character
+            let aiCharacter;
+            do {
+                aiCharacter = characters[Math.floor(Math.random() * characters.length)];
+            } while (aiCharacter.id === character.id);
+            
+            gameState.aiCharacter = aiCharacter;
+            
+            // Select random arena
+            gameState.currentArena = arenas[Math.floor(Math.random() * arenas.length)];
+            
+            // Hide character select screen
+            characterSelect.style.display = 'none';
+            
+            // Update sprites and names
+            playerSprite.textContent = character.emoji;
+            playerSprite.style.color = character.color;
+            aiSprite.textContent = aiCharacter.emoji;
+            aiSprite.style.color = aiCharacter.color;
+            
+            playerNameDisplay.textContent = character.name;
+            aiNameDisplay.textContent = aiCharacter.name;
+            
+            // Update character details
+            playerCharacterName.textContent = character.name;
+            playerCharacterType.textContent = character.type;
+            playerCharacterStrength.textContent = `Strength: ${character.strength}`;
+            playerCharacterWeakness.textContent = `Weakness: ${character.weakness}`;
+            playerSpecialMove.textContent = `Special: ${character.specialMove}`;
+            
+            // Set arena background
+            document.querySelector('.game-arena').style.background = gameState.currentArena.style;
+            
+            // Start the game
+            startRound();
+        }
+        
+        // Start a new round
+        function startRound() {
+            // Reset health
+            gameState.playerHealth = 100;
+            gameState.aiHealth = 100;
+            updateHealthBars();
+            
+            // Reset positions
+            gameState.playerPosition = 200;
+            gameState.aiPosition = 600;
+            updatePositions();
+            
+            // Reset timer
+            gameState.timeLeft = 60;
+            timerDisplay.textContent = gameState.timeLeft;
+            
+            // Update round info
+            roundCounter.textContent = `Round ${gameState.currentRound}`;
+            roundWins.textContent = `${gameState.playerCharacter.name} ${gameState.playerWins} - ${gameState.aiWins} ${gameState.aiCharacter.name}`;
+            
+            // Show round announcement
+            roundAnnouncement.textContent = `Round ${gameState.currentRound}`;
+            roundAnnouncement.style.animation = 'fadeInOut 2s forwards';
+            
+            // Start gameplay after announcement
+            setTimeout(() => {
+                roundAnnouncement.style.animation = '';
+                gameState.gameActive = true;
+                
+                // Start timer and AI action cycle
+                gameState.timerInterval = setInterval(() => {
+                    gameState.timeLeft--;
+                    timerDisplay.textContent = gameState.timeLeft;
+                    
+                    if (gameState.timeLeft <= 0) {
+                        endRound();
+                    }
+                }, 1000);
+                
+                // Separate interval for AI actions to make them more reliable
+                gameState.aiInterval = setInterval(() => {
+                    if (gameState.gameActive) {
+                        aiAction();
+                    }
+                }, 1500); // AI makes a move every 1.5 seconds
+            }, 2000);
+        }
+        
+        // End the current round
+        function endRound() {
+            gameState.gameActive = false;
+            clearInterval(gameState.timerInterval);
+            clearInterval(gameState.aiInterval); // Clear AI interval too
+            
+            // Determine round winner
+            if (gameState.playerHealth > gameState.aiHealth) {
+                gameState.playerWins++;
+                showActionText(`${gameState.playerCharacter.name} wins the round!`, true);
+            } else if (gameState.aiHealth > gameState.playerHealth) {
+                gameState.aiWins++;
+                showActionText(`${gameState.aiCharacter.name} wins the round!`, true);
+            } else {
+                showActionText("Round Draw!", true);
+            }
+            
+            // Check if match is over
+            if (gameState.playerWins >= 2 || gameState.aiWins >= 2) {
+                endMatch();
+            } else {
+                // Start next round after a delay
+                gameState.currentRound++;
+                setTimeout(startRound, 3000);
+            }
+        }
+        
+        // End the match
+        function endMatch() {
+            gameState.gameOver = true;
+            
+            // Show match result
+            if (gameState.playerWins >= 2) {
+                resultText.textContent = "You Win!";
+            } else {
+                resultText.textContent = "AI Wins!";
+            }
+            
+            matchResult.style.display = 'block';
+        }
+        
+        // Play again
+        playAgainBtn.addEventListener('click', () => {
+            // Reset game state
+            gameState.playerWins = 0;
+            gameState.aiWins = 0;
+            gameState.currentRound = 1;
+            gameState.gameOver = false;
+            
+            // Hide match result
+            matchResult.style.display = 'none';
+            
+            // Show character select
+            characterSelect.style.display = 'flex';
+        });
+        
+        // Update health bars
+        function updateHealthBars() {
+            playerHealthBar.style.width = `${gameState.playerHealth}%`;
+            aiHealthBar.style.width = `${gameState.aiHealth}%`;
+        }
+        
+        // Update character positions
+        function updatePositions() {
+            playerSprite.style.left = `${gameState.playerPosition}px`;
+            aiSprite.style.right = `${800 - gameState.aiPosition}px`;
+        }
+        
+        // Show action text
+        function showActionText(text, important = false) {
+            actionText.textContent = text;
+            actionText.style.opacity = '1';
+            actionText.style.left = '50%';
+            actionText.style.top = important ? '40%' : '30%';
+            actionText.style.transform = 'translate(-50%, -50%)';
+            actionText.style.fontSize = important ? '3rem' : '2rem';
+            
+            setTimeout(() => {
+                actionText.style.opacity = '0';
+            }, important ? 2000 : 800);
+        }
+        
+        // Player attacks
+        function playerAttack(type) {
+            if (!gameState.gameActive) return;
+            
+            // Check if in range
+            const inRange = Math.abs(gameState.playerPosition - gameState.aiPosition) < 150;
+            
+            if (!inRange && type !== 'special') {
+                showActionText("Out of range!");
+                return;
+            }
+            
+            // Apply attack animation
+            playerSprite.classList.add('attack-animation');
+            setTimeout(() => {
+                playerSprite.classList.remove('attack-animation');
+            }, 500);
+            
+            // Calculate damage based on attack type
+            let damage = 0;
+            let attackName = "";
+            
+            if (type === 'light') {
+                damage = gameState.playerCharacter.attackPower * 0.7;
+                attackName = "Quick Strike";
+            } else if (type === 'heavy') {
+                damage = gameState.playerCharacter.attackPower * 1.2;
+                attackName = "Heavy Attack";
+            } else if (type === 'special') {
+                damage = gameState.playerCharacter.specialPower;
+                attackName = gameState.playerCharacter.specialMove;
+                playerSprite.classList.add('special-animation');
+                setTimeout(() => {
+                    playerSprite.classList.remove('special-animation');
+                }, 1000);
+            }
+            
+            // Check if AI is blocking
+            if (gameState.aiBlocking) {
+                damage *= 0.3;
+                showActionText("Blocked!");
+            } else {
+                showActionText(attackName);
+                
+                // Apply hit animation to AI
+                aiSprite.classList.add('hit-animation');
+                setTimeout(() => {
+                    aiSprite.classList.remove('hit-animation');
+                }, 300);
+            }
+            
+            // Apply damage
+            gameState.aiHealth = Math.max(0, gameState.aiHealth - damage);
+            updateHealthBars();
+            
+            // Check if round is over
+            if (gameState.aiHealth <= 0) {
+                endRound();
+            }
+        }
+        
+        // AI attacks
+        function aiAttack(type) {
+            if (!gameState.gameActive) return;
+            
+            console.log(`AI attempting ${type} attack`);
+            
+            // Check if in range
+            const inRange = Math.abs(gameState.playerPosition - gameState.aiPosition) < 200; // Increased range
+            
+            if (!inRange && type !== 'special') {
+                console.log("AI attack out of range");
+                return;
+            }
+            
+            // Apply attack animation
+            aiSprite.classList.add('attack-animation');
+            setTimeout(() => {
+                aiSprite.classList.remove('attack-animation');
+            }, 500);
+            
+            // Calculate damage based on attack type
+            let damage = 0;
+            let attackName = "";
+            
+            if (type === 'light') {
+                damage = gameState.aiCharacter.attackPower * 0.7;
+                attackName = "Quick Strike";
+            } else if (type === 'heavy') {
+                damage = gameState.aiCharacter.attackPower * 1.2;
+                attackName = "Heavy Attack";
+            } else if (type === 'special') {
+                damage = gameState.aiCharacter.specialPower;
+                attackName = gameState.aiCharacter.specialMove;
+                aiSprite.classList.add('special-animation');
+                setTimeout(() => {
+                    aiSprite.classList.remove('special-animation');
+                }, 1000);
+            }
+            
+            // Check if player is blocking
+            if (gameState.playerBlocking) {
+                damage *= 0.3;
+                showActionText("You blocked!");
+                console.log("Player blocked attack");
+            } else {
+                showActionText(`${gameState.aiCharacter.name} used ${attackName}!`);
+                console.log(`AI hit with ${attackName} for ${damage} damage`);
+                
+                // Apply hit animation to player
+                playerSprite.classList.add('hit-animation');
+                setTimeout(() => {
+                    playerSprite.classList.remove('hit-animation');
+                }, 300);
+            }
+            
+            // Apply damage
+            gameState.playerHealth = Math.max(0, gameState.playerHealth - damage);
+            updateHealthBars();
+            console.log(`Player health: ${gameState.playerHealth}`);
+            
+            // Check if round is over
+            if (gameState.playerHealth <= 0) {
+                console.log("Round ended - player defeated");
+                endRound();
+            }
+        }
+        
+        // AI decision making
+        function aiAction() {
+            if (!gameState.gameActive) return;
+            
+            // Debug message to confirm AI is active
+            console.log("AI attempting action...");
+            
+            // Calculate distance to player
+            const distance = Math.abs(gameState.playerPosition - gameState.aiPosition);
+            
+            // AI behavior logic - make decisions based on situation
+            if (distance > 180) {
+                // Too far - move closer to attack
+                gameState.aiPosition -= 60;
+                console.log("AI moving closer");
+            } else if (distance < 100) {
+                // Too close - either attack or back up
+                if (Math.random() < 0.7) { 
+                    // Attack when close
+                    const attackChoice = Math.random();
+                    if (attackChoice < 0.6) {
+                        console.log("AI using light attack");
+                        aiAttack('light');
+                    } else if (attackChoice < 0.9) {
+                        console.log("AI using heavy attack");
+                        aiAttack('heavy');
+                    } else {
+                        console.log("AI using special attack");
+                        aiAttack('special');
+                    }
+                } else {
+                    // Sometimes back up
+                    gameState.aiPosition += 40;
+                    console.log("AI backing up");
+                }
+            } else {
+                // Good distance - choose an action
+                const actionChoice = Math.random();
+                
+                if (actionChoice < 0.5) {
+                    // Attack (higher probability)
+                    if (Math.random() < 0.7) {
+                        console.log("AI using light attack");
+                        aiAttack('light');
+                    } else {
+                        console.log("AI using heavy attack");
+                        aiAttack('heavy');
+                    }
+                } else if (actionChoice < 0.7) {
+                    // Block
+                    gameState.aiBlocking = true;
+                    showActionText(`${gameState.aiCharacter.name} is blocking!`);
+                    console.log("AI blocking");
+                    
+                    setTimeout(() => {
+                        gameState.aiBlocking = false;
+                    }, 1500);
+                } else if (actionChoice < 0.85) {
+                    // Special attack - less frequent
+                    console.log("AI using special attack");
+                    aiAttack('special');
+                } else {
+                    // Movement
+                    if (Math.random() < 0.5) {
+                        gameState.aiPosition -= 40;
+                    } else {
+                        gameState.aiPosition += 40;
+                    }
+                    console.log("AI moving randomly");
+                }
+            }
+            
+            // Keep AI in bounds
+            gameState.aiPosition = Math.max(300, Math.min(700, gameState.aiPosition));
+            updatePositions();
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameState.gameActive) return;
+            
+            gameState.keysPressed[e.key] = true;
+            
+            switch (e.key.toLowerCase()) {
+                case 'a':
+                    // Move left
+                    gameState.playerPosition = Math.max(100, gameState.playerPosition - 30);
+                    updatePositions();
+                    break;
+                    
+                case 'd':
+                    // Move right
+                    gameState.playerPosition = Math.min(500, gameState.playerPosition + 30);
+                    updatePositions();
+                    break;
+                    
+                case 'w':
+                    // Jump (animation only)
+                    playerSprite.style.bottom = '250px';
+                    setTimeout(() => {
+                        playerSprite.style.bottom = '150px';
+                    }, 500);
+                    break;
+                    
+                case 'j':
+                    // Light attack
+                    playerAttack('light');
+                    break;
+                    
+                case 'k':
+                    // Heavy attack
+                    playerAttack('heavy');
+                    break;
+                    
+                case 'l':
+                    // Special move
+                    playerAttack('special');
+                    break;
+                    
+                case 's':
+                    // Block
+                    gameState.playerBlocking = true;
+                    showActionText("Blocking!");
+                    break;
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            gameState.keysPressed[e.key] = false;
+            
+            // Stop blocking when S is released
+            if (e.key.toLowerCase() === 's') {
+                gameState.playerBlocking = false;
+            }
+        });
+        
+        // Initialize the game
+        function init() {
+            initializeCharacterGrid();
+            
+            // Debug controls
+            console.log("Game initialized");
+            
+            // Add debug button for testing
+            const debugButton = document.createElement('button');
+            debugButton.textContent = "Test AI Attack";
+            debugButton.style.position = "absolute";
+            debugButton.style.bottom = "20px";
+            debugButton.style.right = "20px";
+            debugButton.style.zIndex = "100";
+            debugButton.style.padding = "10px";
+            debugButton.style.backgroundColor = "#ff3333";
+            debugButton.style.color = "#fff";
+            debugButton.style.border = "none";
+            debugButton.style.borderRadius = "5px";
+            debugButton.style.cursor = "pointer";
+            
+            debugButton.addEventListener('click', () => {
+                console.log("Debug attack triggered");
+                if (gameState.aiCharacter) {
+                    aiAttack('heavy');
+                } else {
+                    console.log("No AI character selected yet");
+                }
+            });
+            
+            document.body.appendChild(debugButton);
+        }
+        
+        // Start the game
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
